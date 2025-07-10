@@ -1,0 +1,20 @@
+[
+  {
+    "title": "Migraines: A Patient's Guide",
+    "filename": "migraines.json",
+    "status": "draft",
+    "wpId": null,
+    "lastUpdated": null,
+    "tags": ["health", "neurology", "pain management"],
+    "category": "Medical Conditions"
+  },
+  {
+    "title": "Understanding GERD",
+    "filename": "gerd.json",
+    "status": "draft",
+    "wpId": null,
+    "lastUpdated": null,
+    "tags": ["health", "gastroenterology", "digestive health"],
+    "category": "Medical Conditions"
+  }
+]

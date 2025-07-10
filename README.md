@@ -2,6 +2,10 @@
 
 A self-contained system for managing and publishing medical content to WordPress with a modern web interface.
 
+## 🚀 Quick Start
+
+**New to this project?** Start here: **[Getting Started Guide](getting-started.md)**
+
 ## 🚀 Features
 
 - **Local Database Management**: Track articles with status, WordPress IDs, and metadata

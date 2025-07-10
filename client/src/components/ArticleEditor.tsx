@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { ArticleContent } from '../types';
 import './ArticleEditor.css';
 
@@ -24,6 +25,7 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [unsavedChanges, setUnsavedChanges] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     const loadContent = async () => {
@@ -129,6 +131,12 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
             {saving ? '💾 Saving...' : '💾 Save'}
           </button>
           <button 
+            className="btn btn-preview"
+            onClick={() => setShowPreview(!showPreview)}
+          >
+            {showPreview ? '📝 Edit' : '👁️ Preview'}
+          </button>
+          <button 
             className="btn btn-publish"
             onClick={handlePublish}
             disabled={saving}
@@ -159,19 +167,6 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
               />
             </div>
             
-            <div className="form-group">
-              <label>Category:</label>
-              <select
-                value={content.category}
-                onChange={(e) => updateContent('category', e.target.value)}
-              >
-                <option value="Medical Conditions">Medical Conditions</option>
-                <option value="Treatments">Treatments</option>
-                <option value="Prevention">Prevention</option>
-                <option value="Lifestyle">Lifestyle</option>
-                <option value="Research">Research</option>
-              </select>
-            </div>
             
             <div className="form-group">
               <label>Tags (comma-separated):</label>
@@ -221,27 +216,41 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({
         </div>
 
         <div className="editor-main">
-          <div className="form-group">
-            <label>Content (Markdown):</label>
-            <textarea
-              className="content-editor"
-              value={content.content}
-              onChange={(e) => updateContent('content', e.target.value)}
-              placeholder="Write your article content in Markdown format..."
-            />
-          </div>
-          
-          <div className="editor-help">
-            <h4>📝 Markdown Tips:</h4>
-            <ul>
-              <li><code># Heading 1</code> for main headings</li>
-              <li><code>## Heading 2</code> for section headings</li>
-              <li><code>**bold text**</code> for bold</li>
-              <li><code>*italic text*</code> for italic</li>
-              <li><code>- Item</code> for bullet points</li>
-              <li><code>[link text](url)</code> for links</li>
-            </ul>
-          </div>
+          {!showPreview ? (
+            <>
+              <div className="form-group">
+                <label>Content (Markdown):</label>
+                <textarea
+                  className="content-editor"
+                  value={content.content}
+                  onChange={(e) => updateContent('content', e.target.value)}
+                  placeholder="Write your article content in Markdown format..."
+                />
+              </div>
+              
+              <div className="editor-help">
+                <h4>📝 Markdown Tips:</h4>
+                <ul>
+                  <li><code># Heading 1</code> for main headings</li>
+                  <li><code>## Heading 2</code> for section headings</li>
+                  <li><code>**bold text**</code> for bold</li>
+                  <li><code>*italic text*</code> for italic</li>
+                  <li><code>- Item</code> for bullet points</li>
+                  <li><code>[link text](url)</code> for links</li>
+                </ul>
+              </div>
+            </>
+          ) : (
+            <div className="preview-panel">
+              <div className="preview-header">
+                <h3>📖 Preview</h3>
+                <p>This is how your article will appear when published:</p>
+              </div>
+              <div className="preview-content">
+                <ReactMarkdown>{content.content}</ReactMarkdown>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

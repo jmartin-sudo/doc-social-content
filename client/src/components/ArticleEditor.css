@@ -84,6 +84,22 @@
   cursor: not-allowed;
 }
 
+.btn-preview {
+  background: #6f42c1;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-preview:hover {
+  background: #5a359c;
+}
+
 .unsaved-warning {
   background: #fff3cd;
   border: 1px solid #ffeaa7;
@@ -212,6 +228,112 @@
   border-radius: 3px;
   font-size: 13px;
   color: #333;
+}
+
+/* Preview Panel Styles */
+.preview-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.preview-header {
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px 8px 0 0;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.preview-header h3 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 18px;
+}
+
+.preview-header p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.preview-content {
+  flex: 1;
+  padding: 30px;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 0 0 8px 8px;
+  overflow-y: auto;
+  max-height: 600px;
+}
+
+/* Style the rendered markdown content */
+.preview-content h1 {
+  color: #333;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.preview-content h2 {
+  color: #444;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+  margin-top: 30px;
+  margin-bottom: 15px;
+}
+
+.preview-content h3 {
+  color: #555;
+  margin-top: 25px;
+  margin-bottom: 12px;
+}
+
+.preview-content p {
+  line-height: 1.6;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.preview-content ul, .preview-content ol {
+  margin-bottom: 16px;
+  padding-left: 30px;
+}
+
+.preview-content li {
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+.preview-content code {
+  background: #f1f3f4;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 13px;
+  color: #333;
+}
+
+.preview-content pre {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+
+.preview-content blockquote {
+  border-left: 4px solid #ddd;
+  margin: 16px 0;
+  padding-left: 16px;
+  color: #666;
+}
+
+.preview-content a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.preview-content a:hover {
+  text-decoration: underline;
 }
 
 .loading,

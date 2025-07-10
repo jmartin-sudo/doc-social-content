@@ -67,12 +67,32 @@ Required environment variables:
 
 ### 3. WordPress Setup
 
-1. Install WordPress REST API (usually enabled by default)
-2. Create an Application Password:
-   - Go to Users → Profile
-   - Scroll to \"Application Passwords\"
-   - Generate new password
-   - Use this password in your `.env` file
+Yes, you need **both** a WordPress username and an Application Password for authentication. Here's how to set it up:
+
+#### Creating a WordPress Application Password
+
+1. **Log into your WordPress admin dashboard** at `https://doc.social/wp-admin`
+2. **Go to Users → Profile** (or Users → All Users → [Your User])
+3. **Scroll down to "Application Passwords"** section
+4. **Create a new Application Password:**
+   - Enter a name like "Medical Content Pipeline" in the "New Application Password Name" field
+   - Click "Add New Application Password"
+   - **Copy the generated password immediately** - you won't be able to see it again!
+
+#### Authentication Method
+
+WordPress REST API uses **Basic Authentication** with:
+- **Username**: Your regular WordPress username (not email)
+- **Password**: The Application Password you just created (not your regular login password)
+
+The system creates a Base64 encoded string: `username:app_password` for API requests.
+
+#### Security Notes
+
+- Application Passwords are safer than regular passwords for API access
+- They can be revoked individually without affecting your main login
+- They work even if two-factor authentication is enabled
+- Never use your regular WordPress login password for API access
 
 ### 4. Start the Application
 

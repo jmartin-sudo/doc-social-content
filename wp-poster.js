@@ -2,11 +2,13 @@ const axios = require('axios');
 const fs = require('fs-extra');
 const path = require('path');
 const moment = require('moment');
+const { marked } = require('marked');
 require('dotenv').config();
 
 const WORDPRESS_API_URL = process.env.WORDPRESS_API_URL;
 const WORDPRESS_USERNAME = process.env.WORDPRESS_USERNAME;
 const WORDPRESS_APP_PASSWORD = process.env.WORDPRESS_APP_PASSWORD;
+const WORDPRESS_DEFAULT_CATEGORY_ID = process.env.WORDPRESS_DEFAULT_CATEGORY_ID;
 
 const ARTICLES_DB_PATH = path.join(__dirname, 'data', 'articles.json');
 const CONTENT_DIR = path.join(__dirname, 'content');
@@ -59,33 +61,9 @@ async function updateArticleInDB(filename, updates) {
   return null;
 }
 
-// Convert markdown to HTML (basic conversion)
+// Convert markdown to HTML using marked library
 function markdownToHtml(markdown) {
-  return markdown
-    // Headers
-    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-    .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-    
-    // Bold and italic
-    .replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>')
-    .replace(/\\*(.*?)\\*/g, '<em>$1</em>')
-    
-    // Lists
-    .replace(/^\\s*\\* (.*$)/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\\/li>)/gs, '<ul>$1</ul>')
-    
-    // Links
-    .replace(/\\[([^\\]]+)\\]\\(([^)]+)\\)/g, '<a href=\"$2\">$1</a>')
-    
-    // Line breaks
-    .replace(/\\n\\n/g, '</p><p>')
-    .replace(/^(?!<[h|u|l])(.+)$/gm, '<p>$1</p>')
-    
-    // Clean up empty paragraphs
-    .replace(/<p><\\/p>/g, '')
-    .replace(/<p>(<[h|u])/g, '$1')
-    .replace(/(<\\/[h|u]>)<\\/p>/g, '$1');
+  return marked(markdown);
 }
 
 // Create WordPress post
@@ -97,48 +75,53 @@ async function createWordPressPost(content) {
     content: markdownToHtml(content.content),
     excerpt: content.metaDescription || '',
     status: 'publish',
-    categories: [], // Will be set based on category name
-    tags: content.tags || [],
-    meta: {
-      _yoast_wpseo_metadesc: content.metaDescription || '',
-      _yoast_wpseo_title: content.title
-    }
+    categories: WORDPRESS_DEFAULT_CATEGORY_ID ? [parseInt(WORDPRESS_DEFAULT_CATEGORY_ID)] : [], // Use default category ID
+    // Note: Tags will be converted to IDs or created if they don't exist
+    // Note: Meta fields (Yoast SEO) may need to be set separately via different API endpoint
   };
 
-  // Get or create category
-  if (content.category) {
+  // Handle tags - convert tag names to tag IDs
+  if (content.tags && content.tags.length > 0) {
     try {
-      const categoriesResponse = await axios.get(`${WORDPRESS_API_URL}/wp-json/wp/v2/categories`, {
-        headers: {
-          'Authorization': `Basic ${auth}`,
-          'Content-Type': 'application/json'
-        },
-        params: {
-          search: content.category
-        }
-      });
-
-      let categoryId;
-      if (categoriesResponse.data.length > 0) {
-        categoryId = categoriesResponse.data[0].id;
-      } else {
-        // Create new category
-        const newCategoryResponse = await axios.post(`${WORDPRESS_API_URL}/wp-json/wp/v2/categories`, {
-          name: content.category,
-          slug: content.category.toLowerCase().replace(/\\s+/g, '-')
-        }, {
+      const tagIds = [];
+      for (const tagName of content.tags) {
+        // First, try to find existing tag
+        const existingTagResponse = await axios.get(`${WORDPRESS_API_URL}/wp-json/wp/v2/tags`, {
           headers: {
             'Authorization': `Basic ${auth}`,
             'Content-Type': 'application/json'
+          },
+          params: {
+            search: tagName
           }
         });
-        categoryId = newCategoryResponse.data.id;
+
+        let tagId;
+        if (existingTagResponse.data.length > 0) {
+          // Use existing tag
+          tagId = existingTagResponse.data[0].id;
+        } else {
+          // Create new tag
+          const newTagResponse = await axios.post(`${WORDPRESS_API_URL}/wp-json/wp/v2/tags`, {
+            name: tagName,
+            slug: tagName.toLowerCase().replace(/\s+/g, '-')
+          }, {
+            headers: {
+              'Authorization': `Basic ${auth}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          tagId = newTagResponse.data.id;
+        }
+        tagIds.push(tagId);
       }
-      
-      postData.categories = [categoryId];
+      postData.tags = tagIds;
     } catch (error) {
-      console.warn('Could not set category:', error.message);
+      console.warn('Could not process tags:', error.message);
+      postData.tags = []; // Fallback to no tags
     }
+  } else {
+    postData.tags = [];
   }
 
   // Set featured image if provided
@@ -151,6 +134,8 @@ async function createWordPressPost(content) {
       console.warn('Could not set featured image:', error.message);
     }
   }
+
+  console.log('Post data being sent:', JSON.stringify(postData, null, 2));
 
   const response = await axios.post(`${WORDPRESS_API_URL}/wp-json/wp/v2/posts`, postData, {
     headers: {
@@ -171,48 +156,12 @@ async function updateWordPressPost(postId, content) {
     content: markdownToHtml(content.content),
     excerpt: content.metaDescription || '',
     status: 'publish',
-    tags: content.tags || [],
-    meta: {
-      _yoast_wpseo_metadesc: content.metaDescription || '',
-      _yoast_wpseo_title: content.title
-    }
+    categories: WORDPRESS_DEFAULT_CATEGORY_ID ? [parseInt(WORDPRESS_DEFAULT_CATEGORY_ID)] : [],
+    tags: content.tags || []
+    // Note: Meta fields (Yoast SEO) may need to be set separately via different API endpoint
   };
 
-  // Update category if changed
-  if (content.category) {
-    try {
-      const categoriesResponse = await axios.get(`${WORDPRESS_API_URL}/wp-json/wp/v2/categories`, {
-        headers: {
-          'Authorization': `Basic ${auth}`,
-          'Content-Type': 'application/json'
-        },
-        params: {
-          search: content.category
-        }
-      });
-
-      let categoryId;
-      if (categoriesResponse.data.length > 0) {
-        categoryId = categoriesResponse.data[0].id;
-      } else {
-        // Create new category
-        const newCategoryResponse = await axios.post(`${WORDPRESS_API_URL}/wp-json/wp/v2/categories`, {
-          name: content.category,
-          slug: content.category.toLowerCase().replace(/\\s+/g, '-')
-        }, {
-          headers: {
-            'Authorization': `Basic ${auth}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        categoryId = newCategoryResponse.data.id;
-      }
-      
-      postData.categories = [categoryId];
-    } catch (error) {
-      console.warn('Could not update category:', error.message);
-    }
-  }
+  // Category is already set using default category ID
 
   const response = await axios.put(`${WORDPRESS_API_URL}/wp-json/wp/v2/posts/${postId}`, postData, {
     headers: {
@@ -284,6 +233,10 @@ async function publishArticle(filename) {
 
   } catch (error) {
     console.error('Error publishing article:', error.message);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', JSON.stringify(error.response.data, null, 2));
+    }
     
     // Update status to error in database
     await updateArticleInDB(filename, {

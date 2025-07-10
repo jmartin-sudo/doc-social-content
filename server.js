@@ -205,6 +205,17 @@ app.post('/api/articles/:filename/publish', async (req, res) => {
       }
     });
     
+    wpPoster.on('error', async (err) => {
+      console.error('Failed to start wp-poster process:', err);
+      const updatedArticles = await readArticlesDB();
+      const updatedIndex = updatedArticles.findIndex(article => article.filename === filename);
+      if (updatedIndex !== -1) {
+        updatedArticles[updatedIndex].status = 'error';
+        await writeArticlesDB(updatedArticles);
+      }
+      res.status(500).json({ error: 'Failed to start publish process', details: err.message });
+    });
+    
   } catch (error) {
     res.status(500).json({ error: 'Failed to publish article' });
   }

@@ -2,10 +2,14 @@
   {
     "title": "Migraines: A Patient's Guide",
     "filename": "migraines.json",
-    "status": "draft",
-    "wpId": null,
-    "lastUpdated": null,
-    "tags": ["health", "neurology", "pain management"],
+    "status": "published",
+    "wpId": 13088,
+    "lastUpdated": "2025-07-10T16:03:52.242Z",
+    "tags": [
+      "health",
+      "neurology",
+      "pain management"
+    ],
     "category": "Medical Conditions"
   },
   {
@@ -14,7 +18,11 @@
     "status": "draft",
     "wpId": null,
     "lastUpdated": null,
-    "tags": ["health", "gastroenterology", "digestive health"],
+    "tags": [
+      "health",
+      "gastroenterology",
+      "digestive health"
+    ],
     "category": "Medical Conditions"
   }
 ]
